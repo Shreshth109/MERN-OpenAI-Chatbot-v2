@@ -25,13 +25,11 @@ const Signup = () => {
     }
   };
 
-  useEffect(() => {
-  const fetchData = async () => {
-    await someFunc();
-  };
-
-  fetchData();
-}, []);
+ useEffect(() => {
+    if (auth?.user) {
+      navigate("/chat");
+    }
+  }, [auth, navigate]);
 
 
   return (
