@@ -66,7 +66,7 @@ const Chat = () => {
           setChatMessages([...data.data.chats]);
           toast.success("Successfully loaded chats", { id: "loadchats" });
         })
-        .catch((err) => {
+        .catch(() => {
           toast.error("Loading failed", { id: "loadchats" });
         });
     }
