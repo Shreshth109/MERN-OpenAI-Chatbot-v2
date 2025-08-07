@@ -44,10 +44,13 @@ const Login = () => {
   };
 
   useEffect(() => {
-    if (auth?.user) {
-      return navigate("/chat");
-    }
-  }, [auth]);
+  const fetchData = async () => {
+    await someFunc();
+  };
+
+  fetchData();
+}, []);
+
 
 
   return (
