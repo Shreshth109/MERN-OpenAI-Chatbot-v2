@@ -26,10 +26,13 @@ const Signup = () => {
   };
 
   useEffect(() => {
-    if (auth?.user) {
-      return navigate("/chat");
-    }
-  }, [auth]);
+  const fetchData = async () => {
+    await someFunc();
+  };
+
+  fetchData();
+}, []);
+
 
   return (
     <Box>
