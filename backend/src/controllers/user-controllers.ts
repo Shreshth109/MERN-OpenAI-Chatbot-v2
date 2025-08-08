@@ -1,174 +1,83 @@
-import { NextFunction, Request, Response } from "express";
-import User from "../models/User.js";
-import { compare, hash } from "bcrypt";
+import { Request, Response } from "express";
+import User from "../models/user-model.js";
 import { createToken } from "../utils/token-manager.js";
 import { COOKIE_NAME } from "../utils/constants.js";
 
-export const getAllUsers = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+// Signup Controller
+export const userSignup = async (req: Request, res: Response) => {
   try {
-    // get all users
-    const users = await User.find();
-    return res.status(200).json({ message: "OK", users });
-  } catch (error) {
-    console.log(error);
-    return res.status(200).json({ message: "ERROR", cause: error.message });
-  }
-};
-
-export const userSignup = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    // user signup
     const { name, email, password } = req.body;
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(401).json({ message: "User already registered" });
+      return res.status(401).json({ message: "User already exists" });
     }
-    const hashedPassword = await hash(password, 10);
-    const user = new User({ name, email, password: hashedPassword });
+
+    const user = new User({ name, email, password });
     await user.save();
 
-    // create token and store cookie
-    res.clearCookie(COOKIE_NAME, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-    });
-
-    const token = createToken(user._id.toString(), user.email, "7d");
+    const token = createToken(user._id.toString(), user.email);
     const expires = new Date();
-    expires.setDate(expires.getDate() + 7);
-    console.log("Setting cookie with token (signup):", token);
+    expires.setDate(expires.getDate() + 7); // expires in 7 days
+
+    // ✅ Set cookie correctly for cross-origin auth
     res.cookie(COOKIE_NAME, token, {
-      expires,
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-    });
-
-    return res
-      .status(201)
-      .json({ message: "OK", name: user.name, email: user.email });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: "ERROR", cause: error.message });
-  }
-};
-
-export const userLogin = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    // user login
-    const { email, password } = req.body;
-    console.log('Login attempt:', email);
-    const user = await User.findOne({ email });
-    console.log('User found:', user);
-    if (!user) {
-      return res.status(401).json({ message: "User not registered" });
-    }
-    const isPasswordCorrect = await compare(password, user.password);
-    if (!isPasswordCorrect) {
-      return res.status(403).json({ message: "Incorrect Password" });
-    }
-
-    res.clearCookie(COOKIE_NAME, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-    });
-
-    // const token = createToken(user._id.toString(), user.email, "7d");
-    // const expires = new Date();
-    // expires.setDate(expires.getDate() + 7);
-    // res.cookie(COOKIE_NAME, token, {
-    //   expires,
-    //   httpOnly: true,
-    //   signed: true,
-    //   secure: true,
-    //   sameSite: "none",
-    // });
-
-    const token = createToken(user._id.toString(), user.email, "7d");
-    const expires = new Date();
-    expires.setDate(expires.getDate() + 7);
-    console.log("Setting cookie with token (login):", token);
-    res.cookie(COOKIE_NAME, token, {
-      expires,
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-    });
-
-    return res
-      .status(200)
-      .json({ message: "OK", name: user.name, email: user.email });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: "ERROR", cause: error.message });
-  }
-};
-
-export const verifyUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    // user token check
-    const user = await User.findById(res.locals.jwtData.id);
-    if (!user) {
-      return res.status(401).send("User not registered or token malfunction");
-    }
-    if (user._id.toString() !== res.locals.jwtData.id) {
-      return res.status(401).send("Permissions didn't match");
-    }
-    return res
-      .status(200)
-      .json({ message: "OK", name: user.name, email: user.email });
-  } catch (error) {
-    console.log(error);
-    return res.status(200).json({ message: "ERROR", cause: error.message });
-  }
-};
-
-export const userLogout = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    // user token check
-    const user = await User.findById(res.locals.jwtData.id);
-    if (!user) {
-      return res.status(401).send("User not registered or token malfunction");
-    }
-    if (user._id.toString() !== res.locals.jwtData.id) {
-      return res.status(401).send("Permissions didn't match");
-    }
-
-    res.clearCookie(COOKIE_NAME, {
-      httpOnly: true,
-      domain: "localhost",
-      signed: true,
       path: "/",
-  
+      expires,
+      httpOnly: true,
+      secure: true,           // ✅ true in production with HTTPS
+      sameSite: "none",       // ✅ 'none' for cross-site cookies
     });
 
-    return res
-      .status(200)
-      .json({ message: "OK", name: user.name, email: user.email });
-  } catch (error) {
-    console.log(error);
-    return res.status(200).json({ message: "ERROR", cause: error.message });
+    return res.status(201).json({
+      message: "User created successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+
+  } catch (err) {
+    console.error("Signup error:", err);
+    return res.status(500).json({ message: "Signup failed", error: err });
+  }
+};
+
+// Login Controller
+export const userLogin = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (!existingUser || existingUser.password !== password) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const token = createToken(existingUser._id.toString(), existingUser.email);
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 7);
+
+    // ✅ Set cookie correctly for login as well
+    res.cookie(COOKIE_NAME, token, {
+      path: "/",
+      expires,
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    return res.status(200).json({
+      message: "Login successful",
+      user: {
+        id: existingUser._id,
+        name: existingUser.name,
+        email: existingUser.email,
+      },
+    });
+
+  } catch (err) {
+    console.error("Login error:", err);
+    return res.status(500).json({ message: "Login failed", error: err });
   }
 };
