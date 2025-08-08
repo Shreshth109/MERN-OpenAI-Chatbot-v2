@@ -1,5 +1,16 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { checkAuthStatus, loginUser, logoutUser, signupUser } from "../helpers/api-communicators";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  checkAuthStatus,
+  loginUser,
+  logoutUser,
+  signupUser,
+} from "../helpers/api-communicators";
 
 type User = {
   name: string;
@@ -14,66 +25,48 @@ type UserAuth = {
   logout: () => Promise<void>;
 };
 
-export const AuthContext = createContext<UserAuth | null>(null);
+const AuthContext = createContext<UserAuth | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Fetch if user's cookies/session is valid, then skip login
-    async function checkStatus() {
+    const checkStatus = async () => {
       try {
         const data = await checkAuthStatus();
-        if (data) {
-          setUser({ email: data.email, name: data.name });
-          setIsLoggedIn(true);
-        }
+        setUser({ email: data.email, name: data.name });
+        setIsLoggedIn(true);
       } catch (error) {
         console.error("Auth check failed:", error);
       }
-    }
+    };
+
     checkStatus();
   }, []);
 
   const login = async (email: string, password: string) => {
-    try {
-      const data = await loginUser(email, password);
-      if (data) {
-        setUser({ email: data.email, name: data.name });
-        setIsLoggedIn(true);
-      }
-    } catch (error) {
-      console.error("Login failed:", error);
-      throw error;
-    }
+    const data = await loginUser(email, password);
+    setUser({ email: data.email, name: data.name });
+    setIsLoggedIn(true);
   };
 
   const signup = async (name: string, email: string, password: string) => {
-    try {
-      const data = await signupUser(name, email, password);
-      if (data) {
-        setUser({ email: data.email, name: data.name });
-        setIsLoggedIn(true);
-      }
-    } catch (error) {
-      console.error("Signup failed:", error);
-      throw error;
-    }
+    const data = await signupUser(name, email, password);
+    setUser({ email: data.email, name: data.name });
+    setIsLoggedIn(true);
   };
 
   const logout = async () => {
-    // Implement logout logic later
     await logoutUser();
-    setIsLoggedIn(false);
     setUser(null);
-    window.location.href = "/"; // Redirect to home page after logout
-    console.log("User logged out successfully");
+    setIsLoggedIn(false);
+    // Leave redirection logic to components, not context
   };
 
   const value: UserAuth = {
-    user,
     isLoggedIn,
+    user,
     login,
     signup,
     logout,
@@ -82,7 +75,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// ✅ Correct hook export
+// ✅ Custom hook with safety check
 export const useAuth = () => {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };
