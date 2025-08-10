@@ -95,7 +95,6 @@ export const userLogout = async (req: Request, res: Response) => {
       sameSite: "none",
       domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined
     });
-
     return res.status(200).json({ message: "Logout successful" });
   } catch (err) {
     console.error("Logout error:", err);
