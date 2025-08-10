@@ -8,7 +8,18 @@ config();
 const app = express();
 
 //middlewares
-app.use(cors({ origin: "https://mern-openai-chatbot-v2-frontend3.onrender.com", credentials: true }));
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:3000", 
+    "https://mern-openai-chatbot-v2-frontend3.onrender.com",
+    process.env.FRONTEND_URL
+  ].filter(Boolean),
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+  exposedHeaders: ["Set-Cookie"]
+}))
 
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
