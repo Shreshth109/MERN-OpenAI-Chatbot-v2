@@ -21,14 +21,14 @@ export const userSignup = async (req: Request, res: Response) => {
     expires.setDate(expires.getDate() + 7); // expires in 7 days
 
     // ✅ Set cookie correctly for cross-origin auth
-  res.cookie(COOKIE_NAME, token, {
-  path: "/",
-  expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production", // true in production
-  sameSite: "none", // Required for cross-origin requests
-  domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined
-});
+    res.cookie(COOKIE_NAME, token, {
+      path: "/",
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // true in production
+      sameSite: "none", // Required for cross-origin requests
+      domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined
+    });
 
     return res.status(201).json({
       message: "User created successfully",
@@ -64,8 +64,9 @@ export const userLogin = async (req: Request, res: Response) => {
       path: "/",
       expires,
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: process.env.NODE_ENV === "production", // true in production
+      sameSite: "none", // Required for cross-origin requests
+      domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined
     });
 
     return res.status(200).json({
@@ -80,5 +81,56 @@ export const userLogin = async (req: Request, res: Response) => {
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({ message: "Login failed", error: err });
+  }
+};
+
+// Logout Controller
+export const userLogout = async (req: Request, res: Response) => {
+  try {
+    // ✅ Clear cookie correctly for cross-origin auth
+    res.clearCookie(COOKIE_NAME, {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined
+    });
+
+    return res.status(200).json({ message: "Logout successful" });
+  } catch (err) {
+    console.error("Logout error:", err);
+    return res.status(500).json({ message: "Logout failed", error: err });
+  }
+};
+
+// Verify User Controller
+export const verifyUser = async (req: Request, res: Response) => {
+  try {
+    const user = await User.findById(res.locals.jwtData.id);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+    return res.status(200).json({
+      message: "User verified",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (err) {
+    console.error("Verify user error:", err);
+    return res.status(500).json({ message: "Verification failed", error: err });
+  }
+};
+
+// Get All Users Controller
+export const getAllUsers = async (req: Request, res: Response) => {
+  try {
+    const users = await User.find({}, { password: 0 }); // Exclude password
+    return res.status(200).json({ users });
+  } catch (err) {
+    console.error("Get all users error:", err);
+    return res.status(500).json({ message: "Failed to get users", error: err });
   }
 };
