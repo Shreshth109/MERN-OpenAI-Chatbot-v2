@@ -21,13 +21,14 @@ export const userSignup = async (req: Request, res: Response) => {
     expires.setDate(expires.getDate() + 7); // expires in 7 days
 
     // ✅ Set cookie correctly for cross-origin auth
-    res.cookie(COOKIE_NAME, token, {
-      path: "/",
-      expires,
-      httpOnly: true,
-      secure: true,           // ✅ true in production with HTTPS
-      sameSite: "none",       // ✅ 'none' for cross-site cookies
-    });
+  res.cookie(COOKIE_NAME, token, {
+  path: "/",
+  expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production", // true in production
+  sameSite: "none", // Required for cross-origin requests
+  domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined
+});
 
     return res.status(201).json({
       message: "User created successfully",
