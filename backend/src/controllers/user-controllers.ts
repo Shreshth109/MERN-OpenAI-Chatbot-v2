@@ -1,10 +1,26 @@
 import { Request, Response } from "express";
-import User from "../models/user-model.js";
+import User from "../models/User.js";
+import { compare, hash } from "bcrypt";
 import { createToken } from "../utils/token-manager.js";
 import { COOKIE_NAME } from "../utils/constants.js";
 
-// Signup Controller
-export const userSignup = async (req: Request, res: Response) => {
+export const getAllUsers = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const users = await User.find({}, { password: 0 }); // Exclude password
+    return res.status(200).json({ message: "OK", users });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "ERROR", cause: error.message });
+  }
+};
+
+export const userSignup = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { name, email, password } = req.body;
 
@@ -12,124 +28,131 @@ export const userSignup = async (req: Request, res: Response) => {
     if (existingUser) {
       return res.status(401).json({ message: "User already exists" });
     }
-
-    const user = new User({ name, email, password });
+    
+    const hashedPassword = await hash(password, 10);
+    const user = new User({ name, email, password: hashedPassword });
     await user.save();
 
-    const token = createToken(user._id.toString(), user.email);
+    const token = createToken(user._id.toString(), user.email, "7d");
     const expires = new Date();
-    expires.setDate(expires.getDate() + 7); // expires in 7 days
+    expires.setDate(expires.getDate() + 7);
 
     // ✅ Set cookie correctly for cross-origin auth
     res.cookie(COOKIE_NAME, token, {
       path: "/",
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+      expires,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // true in production
-      sameSite: "none", // Required for cross-origin requests
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined
     });
 
-    return res.status(201).json({
-      message: "User created successfully",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+    return res.status(201).json({ 
+      message: "OK", 
+      name: user.name, 
+      email: user.email 
     });
-
-  } catch (err) {
-    console.error("Signup error:", err);
-    return res.status(500).json({ message: "Signup failed", error: err });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "ERROR", cause: error.message });
   }
 };
 
-// Login Controller
-export const userLogin = async (req: Request, res: Response) => {
+export const userLogin = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { email, password } = req.body;
-
-    const existingUser = await User.findOne({ email });
-    if (!existingUser || existingUser.password !== password) {
-      return res.status(401).json({ message: "Invalid credentials" });
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.status(401).json({ message: "User not registered" });
+    }
+    
+    const isPasswordCorrect = await compare(password, user.password);
+    if (!isPasswordCorrect) {
+      return res.status(403).json({ message: "Incorrect Password" });
     }
 
-    const token = createToken(existingUser._id.toString(), existingUser.email);
+    const token = createToken(user._id.toString(), user.email, "7d");
     const expires = new Date();
     expires.setDate(expires.getDate() + 7);
 
-    // ✅ Set cookie correctly for login as well
+    // ✅ Set cookie correctly for cross-origin auth
     res.cookie(COOKIE_NAME, token, {
       path: "/",
       expires,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // true in production
-      sameSite: "none", // Required for cross-origin requests
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined
     });
 
-    return res.status(200).json({
-      message: "Login successful",
-      user: {
-        id: existingUser._id,
-        name: existingUser.name,
-        email: existingUser.email,
-      },
+    return res.status(200).json({ 
+      message: "OK", 
+      name: user.name, 
+      email: user.email 
     });
-
-  } catch (err) {
-    console.error("Login error:", err);
-    return res.status(500).json({ message: "Login failed", error: err });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "ERROR", cause: error.message });
   }
 };
 
-// Logout Controller
-export const userLogout = async (req: Request, res: Response) => {
+export const verifyUser = async (
+  req: Request,
+  res: Response
+) => {
   try {
+    const user = await User.findById(res.locals.jwtData.id);
+    if (!user) {
+      return res.status(401).json({ message: "User not registered or token malfunction" });
+    }
+    if (user._id.toString() !== res.locals.jwtData.id) {
+      return res.status(401).json({ message: "Permissions didn't match" });
+    }
+    return res.status(200).json({ 
+      message: "OK", 
+      name: user.name, 
+      email: user.email 
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "ERROR", cause: error.message });
+  }
+};
+
+export const userLogout = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const user = await User.findById(res.locals.jwtData.id);
+    if (!user) {
+      return res.status(401).json({ message: "User not registered or token malfunction" });
+    }
+    if (user._id.toString() !== res.locals.jwtData.id) {
+      return res.status(401).json({ message: "Permissions didn't match" });
+    }
+
     // ✅ Clear cookie correctly for cross-origin auth
     res.clearCookie(COOKIE_NAME, {
       path: "/",
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined
     });
-    return res.status(200).json({ message: "Logout successful" });
-  } catch (err) {
-    console.error("Logout error:", err);
-    return res.status(500).json({ message: "Logout failed", error: err });
-  }
-};
 
-// Verify User Controller
-export const verifyUser = async (req: Request, res: Response) => {
-  try {
-    const user = await User.findById(res.locals.jwtData.id);
-    if (!user) {
-      return res.status(401).json({ message: "User not found" });
-    }
-    return res.status(200).json({
-      message: "User verified",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+    return res.status(200).json({ 
+      message: "OK", 
+      name: user.name, 
+      email: user.email 
     });
-  } catch (err) {
-    console.error("Verify user error:", err);
-    return res.status(500).json({ message: "Verification failed", error: err });
-  }
-};
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "ERROR", cause: error.message });
 
-// Get All Users Controller
-export const getAllUsers = async (req: Request, res: Response) => {
-  try {
-    const users = await User.find({}, { password: 0 }); // Exclude password
-    return res.status(200).json({ users });
-  } catch (err) {
-    console.error("Get all users error:", err);
-    return res.status(500).json({ message: "Failed to get users", error: err });
   }
 };
