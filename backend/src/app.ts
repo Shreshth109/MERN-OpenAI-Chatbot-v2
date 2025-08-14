@@ -7,36 +7,37 @@ import cors from "cors";
 config();
 const app = express();
 
-// trust proxy for secure cookies in production (Render)
 app.set("trust proxy", 1);
 
-//middlewares
-const envOrigins = (process.env.FRONTEND_URL || "")
-	.split(",")
-	.map((o) => o.trim())
-	.filter(Boolean);
-
-const allowedOrigins = [
-	"http://localhost:5173",
-	"http://localhost:3000",
-	"https://mern-openai-chatbot-v2-frontend2.onrender.com",
-	"https://mern-openai-chatbot-v2-frontend3.onrender.com",
-	...envOrigins,
-].filter(Boolean);
-
 const corsOptions = {
-	origin: allowedOrigins,
+	origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+		return callback(null, true);
+	},
 	credentials: true,
 };
 
 app.use(cors(corsOptions));
-// Ensure preflight requests are handled for all routes
 app.options("*", cors(corsOptions));
+
+// Fallback CORS headers to ensure browser sees them on all responses
+app.use((req, res, next) => {
+	const origin = req.headers.origin as string | undefined;
+	if (origin) {
+		res.header("Access-Control-Allow-Origin", origin);
+		res.header("Vary", "Origin");
+	}
+	res.header("Access-Control-Allow-Credentials", "true");
+	res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+	res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+	if (req.method === "OPTIONS") {
+		return res.sendStatus(204);
+	}
+	next();
+});
 
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
-//remove it in production
 app.use(morgan("dev"));
 
 app.use("/api/v1",appRouter);
