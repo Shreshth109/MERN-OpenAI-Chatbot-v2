@@ -13,6 +13,7 @@ app.use(cors({
     "http://localhost:5173",
     "http://localhost:3000", 
     "https://mern-openai-chatbot-v2-frontend3.onrender.com",
+    "https://mern-openai-chatbot-v2-frontend2.onrender.com",
     process.env.FRONTEND_URL
   ].filter(Boolean),
   credentials: true,
