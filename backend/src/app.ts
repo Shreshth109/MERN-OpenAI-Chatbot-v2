@@ -7,6 +7,9 @@ import cors from "cors";
 config();
 const app = express();
 
+// trust proxy for secure cookies in production (Render)
+app.set("trust proxy", 1);
+
 //middlewares
 const envOrigins = (process.env.FRONTEND_URL || "")
 	.split(",")
@@ -24,9 +27,6 @@ const allowedOrigins = [
 const corsOptions = {
 	origin: allowedOrigins,
 	credentials: true,
-	methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-	allowedHeaders: ["Content-Type", "Authorization"],
-	exposedHeaders: ["Set-Cookie"],
 };
 
 app.use(cors(corsOptions));
