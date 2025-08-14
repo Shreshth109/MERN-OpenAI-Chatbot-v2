@@ -10,7 +10,7 @@ import { Toaster } from 'react-hot-toast';
 import axios from "axios";
 
 // Use environment variable for API URL, fallback to localhost for development
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 axios.defaults.baseURL = API_BASE_URL;
 axios.defaults.withCredentials = true; //allowing helping cookies exchanging with backend

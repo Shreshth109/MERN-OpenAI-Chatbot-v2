@@ -1,100 +1,83 @@
-# Deployment Guide for Render.com
+# MERN OpenAI Chatbot Deployment Guide
 
-## ✅ All Issues Fixed
-- ✅ CORS configuration for production
-- ✅ Authentication cookie settings
-- ✅ Environment variables setup
-- ✅ API base URL configuration
-- ✅ TypeScript build configuration
-- ✅ Duplicate function removal
+## Fixing the 404 Error
 
-## Your Specific URLs
-- **Frontend**: https://mern-openai-chatbot-v2-frontend3.onrender.com/
-- **Backend**: https://mern-openai-chatbot-v2-backend.onrender.com
+### Problem Description
+The 404 error you're experiencing is caused by a mismatch between your frontend API calls and backend route configuration.
 
-## Backend Deployment (Render.com)
+**Root Cause:**
+- Backend routes are configured at `/api/v1/user` and `/api/v1/chat`
+- Frontend was making API calls to relative URLs like `/user/login` instead of `/api/v1/user/login`
+- This caused the frontend to try to call these endpoints on the frontend domain instead of the backend domain
 
-### 1. Environment Variables Setup
-In your Render backend service, add these environment variables:
+### What I Fixed
 
-```
-NODE_ENV=production
-FRONTEND_URL=https://mern-openai-chatbot-v2-frontend3.onrender.com
-MONGODB_URL=your_actual_mongodb_atlas_url
-JWT_SECRET=your_actual_jwt_secret
-COOKIE_SECRET=your_actual_cookie_secret
-OPEN_AI_SECRET=your_actual_openai_api_key
-OPENAI_ORGANIZATION_ID=your_actual_organization_id
-```
+1. **Updated API Communicators** (`frontend/src/helpers/api-communicators.ts`):
+   - Changed all API endpoints to include `/api/v1` prefix
+   - Example: `/user/login` → `/api/v1/user/login`
 
-### 2. Build Command
-```
-npm install && npm run build
-```
+2. **Updated Main Configuration** (`frontend/src/main.tsx`):
+   - Fixed axios baseURL configuration
+   - Removed `/api/v1` from the base URL since it's now in each API call
 
-### 3. Start Command
-```
-npm start
-```
+3. **Updated Environment Configuration** (`frontend/env.example`):
+   - Corrected the backend URL format
+   - Added clear instructions about the `/api/v1` prefix
 
-## Frontend Deployment (Render.com)
+### Deployment Steps
 
-### 1. Environment Variables Setup
+#### 1. Backend Deployment (Render)
+- Your backend is already correctly configured
+- Routes are properly set up at `/api/v1/user` and `/api/v1/chat`
+- CORS is configured to allow your frontend domain
+
+#### 2. Frontend Deployment (Render)
+
+**Step 1: Set Environment Variables**
 In your Render frontend service, add this environment variable:
-
 ```
-VITE_API_BASE_URL=https://mern-openai-chatbot-v2-backend.onrender.com/api/v1
-```
-
-### 2. Build Command
-```
-npm install && npm run build
+VITE_API_BASE_URL=https://mern-openai-chatbot-3-backend.onrender.com
 ```
 
-### 3. Start Command
-```
-npm run preview
-```
+**Important Notes:**
+- Do NOT include `/api/v1` at the end of the URL
+- The `/api/v1` prefix is now automatically added to all API calls
+- Your backend URL should end with `.onrender.com` (not `.onrender.com/api/v1`)
 
-## Changes Made to Fix Issues
+**Step 2: Rebuild and Deploy**
+- Commit and push your changes to GitHub
+- Render will automatically rebuild and deploy your frontend
+- The 404 errors should be resolved
 
-### 1. Backend Changes
-- **package.json**: Moved TypeScript to dependencies
-- **app.ts**: Updated CORS for production
-- **user-controllers.ts**: Fixed authentication and removed duplicates
-- **env.example**: Added all required environment variables
+### Verification
 
-### 2. Frontend Changes
-- **main.tsx**: Added environment variable support for API URL
-- **env.example**: Added frontend environment variables
+After deployment, check your browser console:
+1. **No more 404 errors** for API calls
+2. **API calls should go to**: `https://mern-openai-chatbot-3-backend.onrender.com/api/v1/user/login`
+3. **Not to**: `https://mern-openai-chatbot-3-frontend.onrender.com/user/login`
 
-## Steps to Deploy
+### Current API Endpoints
 
-1. **Commit all changes** to GitHub
-2. **Set environment variables** in Render.com
-3. **Redeploy both services**
-4. **Test authentication** and chat functionality
+Your frontend now correctly calls these backend endpoints:
+- `POST /api/v1/user/login` - User login
+- `POST /api/v1/user/signup` - User signup
+- `GET /api/v1/user/auth-status` - Check authentication
+- `POST /api/v1/chat/new` - Send chat message
+- `DELETE /api/v1/chat/delete-all-chats` - Delete all chats
+- `GET /api/v1/user/logout` - User logout
 
-## Testing the Fix
+### Troubleshooting
 
-1. After deployment, check your browser's developer tools (F12)
-2. Go to Network tab
-3. Try to login/signup
-4. Check if there are any CORS errors in the Console tab
-5. Test chat functionality
+If you still see 404 errors:
 
-## Common Issues and Solutions
+1. **Check Environment Variables**: Ensure `VITE_API_BASE_URL` is set correctly in Render
+2. **Verify Backend URL**: Make sure your backend is accessible at the specified URL
+3. **Check CORS**: Ensure your backend CORS configuration includes your frontend domain
+4. **Network Tab**: Use browser DevTools to see exactly which URLs are being called
 
-### Issue: Still getting CORS errors
-**Solution**: Make sure your `FRONTEND_URL` environment variable in the backend exactly matches your frontend URL
+### Development vs Production
 
-### Issue: API calls failing
-**Solution**: Verify that `VITE_API_BASE_URL` in your frontend environment variables points to the correct backend URL
+- **Development**: `http://localhost:5000` (no environment variable needed)
+- **Production**: `https://mern-openai-chatbot-3-backend.onrender.com` (set via `VITE_API_BASE_URL`)
 
-### Issue: 401 Unauthorized errors
-**Solution**: Check that cookies are being set properly and `NODE_ENV=production` is set
-
-## Your URLs for Reference
-- Frontend: `https://mern-openai-chatbot-v2-frontend3.onrender.com`
-- Backend: `https://mern-openai-chatbot-v2-backend.onrender.com`
-- API Base URL: `https://mern-openai-chatbot-v2-backend.onrender.com/api/v1` 
+The code automatically handles both environments based on the environment variable. 
