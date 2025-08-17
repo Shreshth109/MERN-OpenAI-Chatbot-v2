@@ -1,4 +1,4 @@
-# 🧠 MERN AI Chatbot using OpenAI API
+# MERN AI Chatbot using OpenAI API
 
 This is a full-stack AI Chatbot application inspired by ChatGPT, built using the **MERN Stack** (MongoDB, Express.js, React.js, Node.js) and powered by the **OpenAI API**.
 
@@ -9,23 +9,23 @@ The chatbot supports:
 - A clean and responsive frontend built with Material UI
 ---
 
-## 🚀 Features
+## Features
 
-- 🤖 AI-powered responses using OpenAI API (GPT)
-- 💬 User-specific chat history saved in MongoDB
-- 🗑️ Delete specific or all chat messages
-- 🔐 Secure login system using:
+-  AI-powered responses using OpenAI API (GPT)
+-  User-specific chat history saved in MongoDB
+-  Delete specific or all chat messages
+-  Secure login system using:
   - JWT tokens
   - HTTP-only cookies
   - Signed cookies
   - Password encryption (bcrypt)
   - Auth middleware
-- 🖼️ Modern UI with Material UI components
-- ⏳ Auto-login for 7 days after one-time sign-in
+  -  Modern UI with Material UI components
+  -  Auto-login for 7 days after one-time sign-in
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 **Frontend:**
 - React.js
@@ -42,7 +42,11 @@ The chatbot supports:
 - bcrypt (for password encryption)
 - cookie-parser
 
----
+  Websites Screenshot
 
-## 🗂️ Folder Structure
+  Home page
+  ![image_alt](webImages/Chat page.png)
+  
+
+
 
