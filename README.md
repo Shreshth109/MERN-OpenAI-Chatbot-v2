@@ -23,8 +23,6 @@ The chatbot supports:
   -  Modern UI with Material UI components
   -  Auto-login for 7 days after one-time sign-in
 
----
-
 ## Tech Stack
 
 **Frontend:**
@@ -44,20 +42,22 @@ The chatbot supports:
 
   ## Websites Screenshot
 
-  ### Home page![Home Page](https://github.com/Shreshth109/MERN-OpenAI-Chatbot-v2/raw/b286d30a3190a628bc1d5f4bc208ae400a2c38b5/Home%20page1.png) 
+### Home page![Home Page](https://github.com/Shreshth109/MERN-OpenAI-Chatbot-v2/raw/b286d30a3190a628bc1d5f4bc208ae400a2c38b5/Home%20page1.png) 
 
-### 🏠 Home Page 2  
+###  Home Page 2  
 ![Home Page 2](https://github.com/Shreshth109/MERN-OpenAI-Chatbot-v2/raw/1c81754c5356b9675406660d7df4c5e81916b70a/Home%20page2.png)  
 
-### 📝 Sign Page  
+###  Sign Page  
 ![Sign Page](https://github.com/Shreshth109/MERN-OpenAI-Chatbot-v2/raw/1c81754c5356b9675406660d7df4c5e81916b70a/Sign%20page.png)  
 
-### 🔑 Login Page  
+###  Login Page  
 ![Login Page](https://github.com/Shreshth109/MERN-OpenAI-Chatbot-v2/raw/1c81754c5356b9675406660d7df4c5e81916b70a/Login%20page.png)  
 
-### 💬 Chat Page  
+###  Chat Page  
 ![Chat Page](https://github.com/Shreshth109/MERN-OpenAI-Chatbot-v2/raw/1c81754c5356b9675406660d7df4c5e81916b70a/Chat%20page.png)  
 
+## Website Link  
+ [https://mern-openai-chatbot-v2-frontend2.onrender.com](https://mern-openai-chatbot-v2-frontend2.onrender.com/)  
 
   
 
