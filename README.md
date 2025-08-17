@@ -45,7 +45,7 @@ The chatbot supports:
   Websites Screenshot
 
   Home page
-  ![image_alt][(webImages/Chat page.png](https://raw.githubusercontent.com/Shreshth109/MERN-OpenAI-Chatbot-v2/d532a6d5e4a37122c75156be8ff05fd1efac7ee5/webImages/Chat%20page.png))
+  ![image_alt][(https://github.com/Shreshth109/MERN-OpenAI-Chatbot-v2/blob/b286d30a3190a628bc1d5f4bc208ae400a2c38b5/Home%20page1.png)
   
 
 
